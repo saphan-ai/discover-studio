@@ -141,6 +141,30 @@ func TestSecretsAreNamedByFileLineAndTypeAndNeverQuoted(t *testing.T) {
 	}
 }
 
+func TestASecretInAFileAnotherScannerSetAsideIsStillNamed(t *testing.T) {
+	root, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	body := "db_password: " + fixture.Password().Text + "\n// TODO rotate\n"
+	write(t, root, "yarn.lock", body)
+	write(t, root, "package.json", "{not-json\n"+body)
+	write(t, root, "notes.txt", body)
+	res, err := scan.Run(root, attest.ModeDir, scan.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{
+		"notes.txt:1:assigned-secret",
+		"package.json:2:assigned-secret",
+		"yarn.lock:1:assigned-secret",
+	}
+	got := triples(res, "secret")
+	if fmt.Sprint(got) != fmt.Sprint(want) || res.TodoTotal != 3 {
+		t.Fatalf("secrets %v TodoTotal %d, want %v and 3", got, res.TodoTotal, want)
+	}
+}
+
 func TestAnEnvFileIsTrackedOnlyWhenGitTracksIt(t *testing.T) {
 	root := secretRepo(t)
 	write(t, root, ".gitignore", ".env\n")

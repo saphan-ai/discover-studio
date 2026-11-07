@@ -45,6 +45,9 @@ type State struct {
 	Files []string
 	// Skipped is every file a scanner did not read or did not count, with the reason.
 	Skipped []inventory.Skipped
+	// inventorySkipped is the paths the inventory itself skipped. eachText reads this set and not
+	// Skipped: a later scanner may set a file aside for its format, and that file is still searched.
+	inventorySkipped map[string]bool
 	// Repo is the report of the repository; each scanner fills its own section.
 	Repo *model.Repo
 	// TodoTotal is the number of TODO, FIXME, HACK and XXX markers found; Repo.Findings lists at most todo.Max.
@@ -75,6 +78,10 @@ func runInventory(s *State) error {
 	s.Repo.Inventory = res.Inventory
 	s.Files = res.Files
 	s.Skipped = append(s.Skipped, res.Skipped...)
+	s.inventorySkipped = map[string]bool{}
+	for _, k := range res.Skipped {
+		s.inventorySkipped[k.Path] = true
+	}
 	return nil
 }
 
@@ -121,20 +128,20 @@ func runCommands(s *State) error {
 	return nil
 }
 
-// eachText calls fn with the content of every listed file a scanner may read. A file the inventory already skipped is
-// not read again. A file over the size cap, or one that cannot be read, is added to Skipped once, by path and reason,
-// and its error text (which could carry anything) is dropped.
+// eachText calls fn with the content of every listed file a scanner may read. A file the inventory skipped
+// (over the size cap, unreadable, binary, or not a regular file) is not read again. A file stack or commands
+// set aside for its format is still read. A file over the size cap, or one that cannot be read, is added to
+// Skipped once, by path and reason, and its error text (which could carry anything) is dropped.
 func eachText(s *State, fn func(path string, content []byte)) {
 	limit := s.Opts.MaxBytes
 	if limit <= 0 {
 		limit = inventory.DefaultMaxBytes
 	}
-	skipped := map[string]bool{}
-	for _, k := range s.Skipped {
-		skipped[k.Path] = true
+	if s.inventorySkipped == nil {
+		s.inventorySkipped = map[string]bool{}
 	}
 	for _, p := range s.Files {
-		if skipped[p] {
+		if s.inventorySkipped[p] {
 			continue
 		}
 		b, _, err := s.Manifest.Read(p, limit)
@@ -144,7 +151,7 @@ func eachText(s *State, fn func(path string, content []byte)) {
 				reason = inventory.ReasonOverCap
 			}
 			s.Skipped = append(s.Skipped, inventory.Skipped{Path: p, Reason: reason})
-			skipped[p] = true
+			s.inventorySkipped[p] = true
 			continue
 		}
 		fn(p, b)
