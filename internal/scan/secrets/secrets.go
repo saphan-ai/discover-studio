@@ -94,8 +94,8 @@ func Scan(file string, content []byte) []model.Finding {
 	return out
 }
 
-// lineTypes returns the secret types found on one line. An assignment is looked for only when no format matched, so
-// a token behind a name is reported as its own type.
+// lineTypes returns the secret types found on one line. An assignment or a flag value is looked for only when no
+// format matched, so a token behind a name or a flag is reported as its own type.
 func lineTypes(line []byte, config bool) []string {
 	var types []string
 	for _, d := range detectors {
@@ -103,7 +103,7 @@ func lineTypes(line []byte, config bool) []string {
 			types = append(types, d.typ)
 		}
 	}
-	if len(types) == 0 && assigned(line, config) {
+	if len(types) == 0 && (assigned(line, config) || len(flagSpans(string(line))) > 0) {
 		types = append(types, AssignedSecret)
 	}
 	return types

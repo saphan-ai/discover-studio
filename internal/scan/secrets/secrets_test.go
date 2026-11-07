@@ -148,6 +148,44 @@ func TestScanLeavesPlaceholdersAndReferencesAlone(t *testing.T) {
 	}
 }
 
+func TestScanReportsAValueAfterAPasswordFlag(t *testing.T) {
+	assertFlagValue(t, "app --password "+fixture.Password().Text)
+	if g := secrets.Scan("f.txt", lines("app --password changeme")); len(g) != 0 {
+		t.Fatalf("a placeholder after --password was reported: %v", got(g))
+	}
+}
+
+func TestScanReportsAValueAfterTheShortPasswordFlagOnLogin(t *testing.T) {
+	pw := fixture.Password().Text
+	assertFlagValue(t, "docker login -u u -p "+pw+" registry.example.invalid")
+	if g := secrets.Scan("f.txt", lines("docker run -p "+pw)); len(g) != 0 {
+		t.Fatalf("-p without login was reported: %v", got(g))
+	}
+}
+
+func TestScanReportsAValueAfterAnAPIKeyFlag(t *testing.T) {
+	assertFlagValue(t, "deploy --api-key "+fixture.Password().Text)
+}
+
+func TestScanReportsAValueAfterASigningKeyInExecForm(t *testing.T) {
+	assertFlagValue(t, `CMD ["app", "--signing-key", "`+fixture.Password().Text+`"]`)
+}
+
+func assertFlagValue(t *testing.T, line string) {
+	t.Helper()
+	fs := secrets.Scan("f.txt", lines(line))
+	if fmt.Sprint(got(fs)) != fmt.Sprint([]want{{1, "assigned-secret"}}) {
+		t.Fatalf("findings = %v, want one assigned-secret", got(fs))
+	}
+	b, err := json.Marshal(fs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if hit := fixture.Leaks(string(b), fixture.Password()); len(hit) != 0 {
+		t.Fatalf("the finding carries %v", hit)
+	}
+}
+
 func TestScanReportsOnlyFileLineAndType(t *testing.T) {
 	pw := fixture.Password()
 	fs := secrets.Scan("dir/f.env", lines("DB_PASSWORD="+pw.Text))
