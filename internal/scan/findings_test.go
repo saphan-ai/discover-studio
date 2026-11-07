@@ -52,6 +52,26 @@ func secretRepo(t *testing.T) string {
 	write(t, root, ".env", "APP_SECRET="+fixture.Password().Text+"\n")
 	write(t, root, ".env.example", "APP_SECRET=your-secret-here\n")
 	write(t, root, "README.md", "# demo\nAPI_TOKEN=${API_TOKEN}\npassword = \"changeme\"\n")
+	write(t, root, ".github/workflows/release.yml", strings.Join([]string{
+		"jobs:",
+		"  j:",
+		"    steps:",
+		`      - run: curl -H "Authorization: Bearer ` + fixture.GitHubToken().Text + `" u`,
+		"      - run: |",
+		"          deploy --api-key " + fixture.Password().Text,
+	}, "\n")+"\n")
+	write(t, root, ".gitlab-ci.yml", strings.Join([]string{
+		"job:",
+		"  script:",
+		"    - docker login -u u -p " + fixture.GitLabToken().Text + " registry.example.invalid",
+	}, "\n")+"\n")
+	write(t, root, "Dockerfile", "FROM alpine\nCMD [\"app\", \"--signing-key\", \""+fixture.Password().Text+"\"]\n")
+	write(t, root, "compose.yml", strings.Join([]string{
+		"services:",
+		"  app:",
+		"    image: app",
+		"    command: app --password " + fixture.Password().Text,
+	}, "\n")+"\n")
 	return root
 }
 
@@ -102,6 +122,8 @@ func captured(t *testing.T, fn func()) string {
 
 var wantSecretsDir = []string{
 	".env:1:assigned-secret",
+	".github/workflows/release.yml:4:github-token",
+	".gitlab-ci.yml:3:gitlab-token",
 	".npmrc:1:npm-token",
 	"app.yaml:5:assigned-secret",
 	"ci/deploy.sh:2:github-token",
@@ -134,7 +156,11 @@ func TestSecretsAreNamedByFileLineAndTypeAndNeverQuoted(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if hit := fixture.Leaks(string(b)+stray, planted()...); len(hit) != 0 {
+			commands, err := json.Marshal(res.Repo.Commands)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if hit := fixture.Leaks(string(b)+string(commands)+stray, planted()...); len(hit) != 0 {
 				t.Fatalf("a secret value reached the output: %v", hit)
 			}
 		})

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/saphan-ai/discover/internal/model"
@@ -169,6 +170,132 @@ func realValue(v string, quoted, config bool) bool {
 		return true
 	}
 	return !strings.ContainsAny(v, "()") && (config || !reference.MatchString(v))
+}
+
+// Span is a half-open byte range of one secret value on a line. It covers the value only.
+type Span struct {
+	Start int
+	End   int
+}
+
+// longFlag is a secret-named long option and the value after a space or a JSON comma.
+// "--api-key VALUE" and `"--signing-key", "VALUE"` both match. Group 2 is the value.
+var longFlag = regexp.MustCompile(`(?i)(?:--|/)((?:secret|private|access|signing)[_-]?key|api[_-]?key|passphrase|credentials?|password|passwd|secret|token|auth)\b["']?(?:\s*,\s*|\s+)["']?([^\s"',]+)`)
+
+// bearerValue is the value after Authorization: Bearer. Group 1 is the value.
+var bearerValue = regexp.MustCompile(`(?i)Authorization:\s*Bearer\s+["']?([^\s"']+)`)
+
+// authTokenSpace is the npm form that puts the value after _authToken and a space. Group 1 is the value.
+var authTokenSpace = regexp.MustCompile(`(?i)_authToken\s+["']?([^\s"']+)`)
+
+// shortPassword is -p VALUE. It counts only on a line that also says login. Group 1 is the value.
+var shortPassword = regexp.MustCompile(`(?i)(?:^|[\s])-p\s+["']?([^\s"']+)`)
+
+var loginWord = regexp.MustCompile(`(?i)\blogin\b`)
+
+// SecretSpans returns the half-open byte ranges of secret values on line, in order and without overlap.
+// config is true for an environment or config file, where an unquoted word after = or : is a value.
+// A range covers the value only: the name, the flag and the separator stay.
+func SecretSpans(line string, config bool) []Span {
+	var spans []Span
+	b := []byte(line)
+	for _, d := range detectors {
+		for _, loc := range d.re.FindAllIndex(b, -1) {
+			if d.typ == AWSAccessKey && bytes.HasSuffix(b[loc[0]:loc[1]], []byte("EXAMPLE")) {
+				continue
+			}
+			spans = append(spans, Span{loc[0], loc[1]})
+		}
+	}
+	spans = append(spans, assignmentSpans(line, config)...)
+	spans = append(spans, flagSpans(line)...)
+	return mergeSpans(spans)
+}
+
+func assignmentSpans(line string, config bool) []Span {
+	var spans []Span
+	from := 0
+	for from < len(line) {
+		loc := assignment.FindStringSubmatchIndex(line[from:])
+		if loc == nil || loc[4] < 0 {
+			break
+		}
+		restStart := from + loc[4]
+		rest := line[restStart:]
+		lead := 0
+		for lead < len(rest) && (rest[lead] == ' ' || rest[lead] == '\t') {
+			lead++
+		}
+		value, quoted := valueOf(rest[lead:])
+		if !realValue(value, quoted, config) {
+			next := from + loc[1]
+			if next <= from {
+				break
+			}
+			from = next
+			continue
+		}
+		start := restStart + lead
+		if quoted {
+			start++
+		}
+		end := start + len(value)
+		if end <= from || end > len(line) {
+			break
+		}
+		spans = append(spans, Span{start, end})
+		from = end
+	}
+	return spans
+}
+
+func flagSpans(line string) []Span {
+	spans := valueSpans(longFlag, line, 2)
+	spans = append(spans, valueSpans(bearerValue, line, 1)...)
+	spans = append(spans, valueSpans(authTokenSpace, line, 1)...)
+	if loginWord.MatchString(line) {
+		spans = append(spans, valueSpans(shortPassword, line, 1)...)
+	}
+	return spans
+}
+
+func valueSpans(re *regexp.Regexp, line string, group int) []Span {
+	var spans []Span
+	for _, loc := range re.FindAllStringSubmatchIndex(line, -1) {
+		start, end := loc[group*2], loc[group*2+1]
+		if start < 0 || end < start {
+			continue
+		}
+		if !realValue(line[start:end], false, false) {
+			continue
+		}
+		spans = append(spans, Span{start, end})
+	}
+	return spans
+}
+
+func mergeSpans(spans []Span) []Span {
+	if len(spans) == 0 {
+		return nil
+	}
+	sort.Slice(spans, func(i, j int) bool {
+		if spans[i].Start != spans[j].Start {
+			return spans[i].Start < spans[j].Start
+		}
+		return spans[i].End < spans[j].End
+	})
+	out := []Span{spans[0]}
+	for _, sp := range spans[1:] {
+		last := &out[len(out)-1]
+		if sp.Start <= last.End {
+			if sp.End > last.End {
+				last.End = sp.End
+			}
+			continue
+		}
+		out = append(out, sp)
+	}
+	return out
 }
 
 // TrackedEnv reports whether path names an environment file (.env, .env.local) that is not a template. The caller
