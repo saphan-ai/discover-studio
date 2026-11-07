@@ -36,6 +36,7 @@
       "ui": [],
       "narrative": {
         "model": "example-model",
+        "dropped": 2,
         "claims": [
           {
             "text": "The repository is documentation only.",

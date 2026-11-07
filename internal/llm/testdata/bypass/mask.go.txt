@@ -1,0 +1,4 @@
+package llm
+
+// maskPlan is the bypass the leak control builds with: it masks nothing.
+func maskPlan(file string, content []byte) map[int][]string { return nil }
