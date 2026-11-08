@@ -218,10 +218,12 @@ type UIItem struct {
 	Source Source `json:"source"`
 }
 
-// Narrative holds the model-written claims. Claims is empty when no model was used.
+// Narrative holds the model-written claims. Claims is empty when no model was used. Dropped is the number of model
+// claims, questions and recommendations the cite-or-drop filter refused; it is left out when none was.
 type Narrative struct {
-	Model  string  `json:"model,omitempty" minLen:"1"`
-	Claims []Claim `json:"claims"`
+	Model   string  `json:"model,omitempty" minLen:"1"`
+	Dropped int     `json:"dropped,omitempty" min:"0"`
+	Claims  []Claim `json:"claims"`
 }
 
 // Claim is one narrative statement; it needs at least one citation.

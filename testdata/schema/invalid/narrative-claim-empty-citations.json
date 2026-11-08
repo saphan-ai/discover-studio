@@ -109,7 +109,8 @@
             "text": "The repository is documentation only."
           }
         ],
-        "model": "example-model"
+        "model": "example-model",
+        "dropped": 2
       },
       "open_questions": [],
       "recommendations": [],

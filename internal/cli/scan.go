@@ -15,10 +15,12 @@ import (
 	"syscall"
 
 	"github.com/saphan-ai/discover/internal/attest"
+	"github.com/saphan-ai/discover/internal/llm"
 	"github.com/saphan-ai/discover/internal/manifest"
 )
 
-const scanUsage = "usage: discover scan [--out <dir>] [--record-root] [--git-timeout <duration>] <path>..."
+const scanUsage = "usage: discover scan [--out <dir>] [--record-root] [--git-timeout <duration>] " +
+	"[--model <name> --model-url <base-url> [--model-key-env <variable>]] <path>..."
 
 // What the read-only proof covers, printed beside EQUAL so nobody reads it as wider than it is.
 const (
@@ -65,6 +67,10 @@ func scan(args []string, stdout, stderr io.Writer) int {
 	out := fs.String("out", "./discover-out", "directory for READ_MANIFEST.json and ATTESTATION.json")
 	recordRoot := fs.Bool("record-root", false, "record the absolute root path instead of its base name")
 	gitTimeout := fs.Duration("git-timeout", attest.DefaultGitTimeout, "deadline of each git call")
+	mf := modelFlags{}
+	fs.StringVar(&mf.name, "model", "", "ask this model for the narrative parts; off unless given, and then needs --model-url")
+	fs.StringVar(&mf.url, "model-url", "", "base URL of an OpenAI-compatible endpoint, local or remote (used only with --model)")
+	fs.StringVar(&mf.keyEnv, "model-key-env", "", "name of the environment variable that holds the endpoint's key; the key is read from there only")
 	var given []string
 	rest := args
 	for {
@@ -89,6 +95,16 @@ func scan(args []string, stdout, stderr io.Writer) int {
 	if *gitTimeout <= 0 {
 		fmt.Fprintf(stderr, "discover scan: --git-timeout must be positive, got %s\n", *gitTimeout)
 		return ExitUsage
+	}
+
+	if msg := mf.check(); msg != "" {
+		fmt.Fprintf(stderr, "discover scan: %s\n", msg)
+		return ExitUsage
+	}
+	mf.key = llm.KeyFromEnv(mf.keyEnv, os.Getenv)
+	if mf.keyEnv != "" && mf.key == "" {
+		// A local endpoint needs no key, so this is a notice and not a refusal. It names the variable, never a value.
+		fmt.Fprintf(stderr, "discover scan: --model-key-env names %s, which is unset or empty; the call is sent with no key\n", mf.keyEnv)
 	}
 
 	var targets []target
@@ -183,7 +199,7 @@ func scan(args []string, stdout, stderr io.Writer) int {
 
 	code := ExitOK
 	for i, t := range targets {
-		c, err := scanOne(t, outs[i], attest.Options{RecordRoot: *recordRoot, GitTimeout: *gitTimeout}, stdout)
+		c, err := scanOne(t, outs[i], attest.Options{RecordRoot: *recordRoot, GitTimeout: *gitTimeout}, mf, stdout)
 		if err != nil {
 			fmt.Fprintf(stderr, "discover scan: %q: %v\n", t.label, err)
 			return ExitUsage
@@ -204,13 +220,22 @@ type outputDir struct {
 	created []string
 }
 
-func scanOne(t target, out outputDir, opts attest.Options, stdout io.Writer) (int, error) {
+func scanOne(t target, out outputDir, opts attest.Options, mf modelFlags, stdout io.Writer) (int, error) {
 	before, err := attest.Attest(t.real, opts)
 	if err != nil {
 		return ExitUsage, err
 	}
 	// The manifest lists what analysers read and cite; the attestation's own reads are covered by the digest.
 	m := manifest.New(t.real)
+	analysers(t.real, m)
+	// The model step runs only when asked for. Its result waits for the report writer; for now the counts are
+	// printed after the proof.
+	var narr *narration
+	if mf.on() {
+		if narr, err = narrate(mf, m); err != nil {
+			return ExitUsage, err
+		}
+	}
 	betweenPasses(t.real)
 	after, err := attest.Attest(t.real, opts)
 	if err != nil {
@@ -265,6 +290,10 @@ func scanOne(t target, out outputDir, opts attest.Options, stdout io.Writer) (in
 	fmt.Fprintf(stdout, "files: %d  bytes: %d  digest: %s\n", before.Tree.Files, before.Tree.Bytes, before.Tree.Digest)
 	if u := before.Untracked; u != nil && u.Files+u.Links+u.Submodules+u.Unreadable > 0 {
 		fmt.Fprintf(stdout, "untracked: %d files  digest: %s\n", u.Files, u.Digest)
+	}
+	if narr != nil {
+		fmt.Fprintf(stdout, "model: %s  kept: %d  dropped: %d  skipped: %d\n", mf.name,
+			len(narr.result.Claims)+len(narr.result.OpenQuestions)+len(narr.result.Recommendations), narr.result.Dropped, narr.skipped)
 	}
 	if len(diffs) == 0 {
 		fmt.Fprintf(stdout, "read-only proof: EQUAL %s %s\n", before.Tree.Digest, scope)

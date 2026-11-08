@@ -309,6 +309,7 @@
       "required": ["claims"],
       "properties": {
         "model": { "type": "string", "minLength": 1 },
+        "dropped": { "type": "integer", "minimum": 0 },
         "claims": { "type": "array", "items": { "$ref": "#/$defs/claim" } }
       }
     },

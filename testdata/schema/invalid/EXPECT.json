@@ -54,6 +54,11 @@
     "mutated": "/repos/0/narrative/claims/0/citations",
     "refused_at": "/repos/0/narrative/claims/0/citations"
   },
+  "narrative-dropped-negative.json": {
+    "base": "valid/with-narrative.json",
+    "mutated": "/repos/0/narrative/dropped",
+    "refused_at": "/repos/0/narrative/dropped"
+  },
   "open-question-one-option.json": {
     "base": "valid/two-repos.json",
     "mutated": "/repos/0/open_questions/0/options",

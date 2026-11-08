@@ -55,7 +55,7 @@ The ten sections of the per-repo report map to fields as follows.
 | 6 Cross-repo wiring | `wiring[]` | `target`, `relation`, `source`. |
 | 7 Findings | `findings[]` | `kind` (`hot_spot`, `anti_pattern`, `secret`, `dead_code_candidate`, `todo`, `prompt_injection`), `severity` (`info`, `low`, `medium`, `high`), `source`, optional `text`, and `secret_type` for secrets only. At most 30 findings of kind `todo` per repository. |
 | 8 UI strings and screens | `ui[]` | `kind` (`string`, `screen`), `text`, `source`. Inventory only. |
-| (model output) | `narrative` | `claims[]`, each `text` and `citations[]` (at least one source). Empty when no model was used. Optional `model`. |
+| (model output) | `narrative` | `claims[]`, each `text` and `citations[]` (at least one source). Empty when no model was used. Optional `model`. Optional `dropped`, an integer of zero or more: how many model claims, open questions and recommendations the cite-or-drop filter refused (a v1 optional field, added without a version change). |
 | 9 Open questions | `open_questions[]` | `topic`, `question`, `context` (a source), `options[]` (two or three). |
 | 10 Recommendations | `recommendations[]` | `text`, `citations[]` (at least one source). |
 | honest absence | `absent[]` | `section` (1 to 10), `reason`. |
