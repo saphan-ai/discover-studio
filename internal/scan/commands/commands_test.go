@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/saphan-ai/discover/internal/fixture"
 	"github.com/saphan-ai/discover/internal/manifest"
 	"github.com/saphan-ai/discover/internal/model"
 	"github.com/saphan-ai/discover/internal/scan/commands"
@@ -321,6 +322,53 @@ func TestOverCapAndUnreadableAndUnparsableFilesAreNamed(t *testing.T) {
 		got = append(got, s.Path+"|"+s.Reason)
 	}
 	eq(t, got, []string{"Makefile|" + commands.ReasonOverCap, "justfile|" + commands.ReasonUnreadable, "package.json|" + commands.ReasonUnparsed})
+}
+
+func TestACitedCommandWithholdsEachSecretForm(t *testing.T) {
+	pw := fixture.Password()
+	gh, aws, npm, gl := fixture.GitHubToken(), fixture.AWSKey(), fixture.NPMToken(), fixture.GitLabToken()
+	run := func(line string) map[string]string {
+		return map[string]string{".github/workflows/r.yml": "jobs:\n  j:\n    steps:\n      - run: " + line + "\n"}
+	}
+	block := map[string]string{".github/workflows/r.yml": "jobs:\n  j:\n    steps:\n      - run: |\n          deploy --api-key " + pw.Text + "\n"}
+	cases := []struct {
+		name  string
+		files map[string]string
+		file  string
+		keep  string
+		vals  []fixture.Value
+	}{
+		{"token by shape, github", run("echo " + gh.Text), ".github/workflows/r.yml", "echo", []fixture.Value{gh}},
+		{"token by shape, aws", run("echo " + aws.Text), ".github/workflows/r.yml", "echo", []fixture.Value{aws}},
+		{"token by shape, npm", run("echo " + npm.Text), ".github/workflows/r.yml", "echo", []fixture.Value{npm}},
+		{"token by shape, gitlab", run("echo " + gl.Text), ".github/workflows/r.yml", "echo", []fixture.Value{gl}},
+		{"value after -p", map[string]string{".gitlab-ci.yml": "job:\n  script:\n    - docker login -u u -p " + pw.Text + " registry.example.invalid\n"}, ".gitlab-ci.yml", "docker login", []fixture.Value{pw}},
+		{"value after --token", run("deploy --token " + pw.Text), ".github/workflows/r.yml", "deploy --token", []fixture.Value{pw}},
+		{"value after _authToken", run("npm config set //registry.example.invalid/:_authToken " + pw.Text), ".github/workflows/r.yml", "_authToken", []fixture.Value{pw}},
+		{"value after Authorization Bearer", run(`curl -H "Authorization: Bearer ` + pw.Text + `" u`), ".github/workflows/r.yml", "Authorization: Bearer", []fixture.Value{pw}},
+		{"assignment to access_key", run("export access_key=" + pw.Text), ".github/workflows/r.yml", "access_key=", []fixture.Value{pw}},
+		{"assignment to signing_key", run("export signing_key=" + pw.Text), ".github/workflows/r.yml", "signing_key=", []fixture.Value{pw}},
+		{"assignment to private_key", run("export private_key=" + pw.Text), ".github/workflows/r.yml", "private_key=", []fixture.Value{pw}},
+		{"value after --api-key", block, ".github/workflows/r.yml", "deploy --api-key", []fixture.Value{pw}},
+		{"signing-key in a dockerfile exec form", map[string]string{"Dockerfile": "FROM alpine\nCMD [\"app\", \"--signing-key\", \"" + pw.Text + "\"]\n"}, "Dockerfile", "--signing-key", []fixture.Value{pw}},
+		{"password in a compose command", map[string]string{"compose.yml": "services:\n  app:\n    image: app\n    command: app --password " + pw.Text + "\n"}, "compose.yml", "--password", []fixture.Value{pw}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			r, _ := scanMem(c.files)
+			b, err := json.Marshal(r)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if hit := fixture.Leaks(string(b), c.vals...); len(hit) != 0 {
+				t.Fatalf("a secret value reached the command text: %v", hit)
+			}
+			got := strings.Join(cmdsOf(r, c.file), "\n")
+			if !strings.Contains(got, "<withheld>") || !strings.Contains(got, c.keep) {
+				t.Fatalf("the value was not withheld in place")
+			}
+		})
+	}
 }
 
 func TestASecretShapedValueIsNeverQuoted(t *testing.T) {

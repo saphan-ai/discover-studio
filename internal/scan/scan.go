@@ -12,14 +12,17 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"sort"
 
 	"github.com/saphan-ai/discover/internal/attest"
 	"github.com/saphan-ai/discover/internal/manifest"
 	"github.com/saphan-ai/discover/internal/model"
 	"github.com/saphan-ai/discover/internal/scan/commands"
 	"github.com/saphan-ai/discover/internal/scan/inventory"
+	"github.com/saphan-ai/discover/internal/scan/secrets"
 	"github.com/saphan-ai/discover/internal/scan/stack"
 	"github.com/saphan-ai/discover/internal/scan/structure"
+	"github.com/saphan-ai/discover/internal/scan/todo"
 )
 
 // Options tune one run.
@@ -42,8 +45,13 @@ type State struct {
 	Files []string
 	// Skipped is every file a scanner did not read or did not count, with the reason.
 	Skipped []inventory.Skipped
+	// inventorySkipped is the paths the inventory itself skipped. eachText reads this set and not
+	// Skipped: a later scanner may set a file aside for its format, and that file is still searched.
+	inventorySkipped map[string]bool
 	// Repo is the report of the repository; each scanner fills its own section.
 	Repo *model.Repo
+	// TodoTotal is the number of TODO, FIXME, HACK and XXX markers found; Repo.Findings lists at most todo.Max.
+	TodoTotal int
 }
 
 // Scanner fills one section of the report.
@@ -58,6 +66,8 @@ var Scanners = []Scanner{
 	{"structure", runStructure},
 	{"stack", runStack},
 	{"commands", runCommands},
+	{"secrets", runSecrets},
+	{"todo", runTodo},
 }
 
 func runInventory(s *State) error {
@@ -68,6 +78,10 @@ func runInventory(s *State) error {
 	s.Repo.Inventory = res.Inventory
 	s.Files = res.Files
 	s.Skipped = append(s.Skipped, res.Skipped...)
+	s.inventorySkipped = map[string]bool{}
+	for _, k := range res.Skipped {
+		s.inventorySkipped[k.Path] = true
+	}
 	return nil
 }
 
@@ -114,12 +128,95 @@ func runCommands(s *State) error {
 	return nil
 }
 
+// eachText calls fn with the content of every listed file a scanner may read. A file the inventory skipped
+// (over the size cap, unreadable, binary, or not a regular file) is not read again. A file stack or commands
+// set aside for its format is still read. A file over the size cap, or one that cannot be read, is added to
+// Skipped once, by path and reason, and its error text (which could carry anything) is dropped.
+func eachText(s *State, fn func(path string, content []byte)) {
+	limit := s.Opts.MaxBytes
+	if limit <= 0 {
+		limit = inventory.DefaultMaxBytes
+	}
+	if s.inventorySkipped == nil {
+		s.inventorySkipped = map[string]bool{}
+	}
+	for _, p := range s.Files {
+		if s.inventorySkipped[p] {
+			continue
+		}
+		b, _, err := s.Manifest.Read(p, limit)
+		if err != nil {
+			reason := inventory.ReasonUnreadable
+			if errors.Is(err, manifest.ErrTooLarge) {
+				reason = inventory.ReasonOverCap
+			}
+			s.Skipped = append(s.Skipped, inventory.Skipped{Path: p, Reason: reason})
+			s.inventorySkipped[p] = true
+			continue
+		}
+		fn(p, b)
+	}
+}
+
+// runSecrets lists the secrets by file, line and type. In git mode it also lists the environment files git tracks.
+func runSecrets(s *State) error {
+	if s.Repo.Findings == nil {
+		s.Repo.Findings = []model.Finding{}
+	}
+	if s.Mode == attest.ModeGit {
+		tracked, err := attest.TrackedFiles(s.Root, s.Opts.Attest)
+		if err != nil {
+			return err
+		}
+		isTracked := make(map[string]bool, len(tracked))
+		for _, p := range tracked {
+			isTracked[p] = true
+		}
+		for _, p := range s.Files {
+			if isTracked[p] && secrets.TrackedEnv(p) {
+				s.Repo.Findings = append(s.Repo.Findings, secrets.TrackedEnvFinding(p))
+			}
+		}
+	}
+	eachText(s, func(p string, b []byte) {
+		s.Repo.Findings = append(s.Repo.Findings, secrets.Scan(p, b)...)
+	})
+	sort.SliceStable(s.Repo.Findings, func(i, j int) bool {
+		a, b := s.Repo.Findings[i].Source, s.Repo.Findings[j].Source
+		if a.File != b.File {
+			return a.File < b.File
+		}
+		return a.Line < b.Line
+	})
+	return nil
+}
+
+// runTodo lists the first todo.Max markers in file order and counts them all.
+func runTodo(s *State) error {
+	if s.Repo.Findings == nil {
+		s.Repo.Findings = []model.Finding{}
+	}
+	listed := 0
+	eachText(s, func(p string, b []byte) {
+		for _, f := range todo.Scan(p, b) {
+			s.TodoTotal++
+			if listed < todo.Max {
+				s.Repo.Findings = append(s.Repo.Findings, f)
+				listed++
+			}
+		}
+	})
+	return nil
+}
+
 // Result is what one run found. Repo holds only the sections the registered scanners fill; the rest is left for the
 // caller (the attestation and the other sections).
 type Result struct {
 	Repo         model.Repo
 	Skipped      []inventory.Skipped
 	ReadManifest model.ReadManifest
+	// TodoTotal is the number of markers found; the model has no field for it (see State.TodoTotal).
+	TodoTotal int
 }
 
 // Run scans root, which is an existing directory, in the given mode.
@@ -144,7 +241,7 @@ func Run(root string, mode attest.Mode, opts Options) (Result, error) {
 		rm.BytesRead += int(e.Size)
 	}
 	rm.FilesRead = len(rm.Entries)
-	return Result{Repo: *s.Repo, Skipped: s.Skipped, ReadManifest: rm}, nil
+	return Result{Repo: *s.Repo, Skipped: s.Skipped, ReadManifest: rm, TodoTotal: s.TodoTotal}, nil
 }
 
 // cause drops the path an operating system error carries, so an error never names the absolute root.

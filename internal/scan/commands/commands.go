@@ -9,6 +9,7 @@ import (
 
 	"github.com/saphan-ai/discover/internal/manifest"
 	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover/internal/scan/secrets"
 )
 
 // The reasons a file is listed in Result.Skipped. The first two are the words the inventory uses.
@@ -182,16 +183,33 @@ func classify(s string) string {
 }
 
 // A command line may carry a credential. The report names the command and never quotes the value.
-var (
-	secretAssign = regexp.MustCompile(`(?i)((?:token|secret|passw(?:or)?d|api[_-]?key|credentials?|auth)[A-Za-z0-9_-]*\s*[=:]\s*)(["']?)([^\s"'$][^\s"']*)`)
-	urlUser      = regexp.MustCompile(`(://[^/\s:@]+:)[^/\s@]+@`)
-)
+// The spans come from the secrets scanner, so a cited line withholds the same values that scanner names,
+// including a value after a secret-named flag.
+var urlUser = regexp.MustCompile(`(://[^/\s:@]+:)[^/\s@]+@`)
 
 const withheld = "<withheld>"
 
 func redact(text string) string {
-	text = secretAssign.ReplaceAllString(text, "${1}${2}"+withheld)
+	text = withhold(text, secrets.SecretSpans(text, false))
 	return urlUser.ReplaceAllString(text, "${1}"+withheld+"@")
+}
+
+func withhold(text string, spans []secrets.Span) string {
+	if len(spans) == 0 {
+		return text
+	}
+	var b strings.Builder
+	prev := 0
+	for _, sp := range spans {
+		if sp.Start < prev || sp.End > len(text) || sp.Start >= sp.End {
+			continue
+		}
+		b.WriteString(text[prev:sp.Start])
+		b.WriteString(withheld)
+		prev = sp.End
+	}
+	b.WriteString(text[prev:])
+	return b.String()
 }
 
 // lineAt is the 1-based line number of byte offset off.
