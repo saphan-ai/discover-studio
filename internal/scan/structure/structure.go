@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/saphan-ai/discover/internal/model"
-	"github.com/saphan-ai/discover/internal/scan/inventory"
+	"github.com/saphan-ai/discover-studio/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/scan/inventory"
 )
 
 // programming holds the languages whose files count as source code. Markup and data files do not.

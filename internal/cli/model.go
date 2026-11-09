@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/saphan-ai/discover/internal/citecheck"
-	"github.com/saphan-ai/discover/internal/llm"
-	"github.com/saphan-ai/discover/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/citecheck"
+	"github.com/saphan-ai/discover-studio/internal/llm"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
 )
 
 // modelTransport is the transport of the model call; nil means the default. Tests put a counting one here.

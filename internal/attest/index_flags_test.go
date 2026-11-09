@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
 )
 
 // An index flag that tells git to stop looking at a path (assume-unchanged, skip-worktree) hides a change from

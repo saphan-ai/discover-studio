@@ -13,7 +13,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/llm"
+	"github.com/saphan-ai/discover-studio/internal/llm"
 )
 
 // hitCounter is a local server that counts the requests it receives and answers 200 with an empty answer.

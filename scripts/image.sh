@@ -1,5 +1,5 @@
 #!/bin/sh
-# image.sh: build Discover's image for this machine's platform and load it into the local engine (`make image`).
+# image.sh: build Discover Studio's image for this machine's platform and load it into the local engine (`make image`).
 # One platform only: a local engine cannot load a multi-platform index. `make push` builds both platforms.
 set -eu
 . "$(CDPATH='' cd -- "$(dirname "$0")" && pwd)/image-lib.sh"

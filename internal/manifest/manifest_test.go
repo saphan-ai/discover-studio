@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/saphan-ai/discover/internal/fixture"
-	"github.com/saphan-ai/discover/internal/safepath"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/safepath"
 )
 
 func tree(t *testing.T) string {

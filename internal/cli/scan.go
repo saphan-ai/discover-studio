@@ -14,9 +14,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/saphan-ai/discover/internal/attest"
-	"github.com/saphan-ai/discover/internal/llm"
-	"github.com/saphan-ai/discover/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/attest"
+	"github.com/saphan-ai/discover-studio/internal/llm"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
 )
 
 const scanUsage = "usage: discover scan [--out <dir>] [--record-root] [--git-timeout <duration>] " +

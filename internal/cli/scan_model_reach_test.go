@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
 )
 
 // answerServer is a local endpoint that counts its requests and answers with modelAnswer.

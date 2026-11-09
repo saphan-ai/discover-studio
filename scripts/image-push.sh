@@ -1,5 +1,5 @@
 #!/bin/sh
-# image-push.sh: publish Discover's image (`make push`). Pushing is the owner's act.
+# image-push.sh: publish Discover Studio's image (`make push`). Pushing is the owner's act.
 #
 # Nothing reaches a registry before every platform has been scanned, and what is scanned is what is published:
 #   1. The working tree must be clean, so the image's revision label names the code it carries.

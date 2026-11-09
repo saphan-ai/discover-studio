@@ -38,7 +38,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/saphan-ai/discover/contracts/studio-call-v1/conformance"
+	"github.com/saphan-ai/discover-studio/contracts/studio-call-v1/conformance"
 )
 
 type block struct {

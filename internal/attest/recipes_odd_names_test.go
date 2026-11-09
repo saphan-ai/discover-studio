@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
 )
 
 func oddTree(t *testing.T, root string, extra map[string]string) {

@@ -11,10 +11,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/citecheck"
-	"github.com/saphan-ai/discover/internal/llm"
-	"github.com/saphan-ai/discover/internal/manifest"
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/citecheck"
+	"github.com/saphan-ai/discover-studio/internal/llm"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 const readme = "# Orbit\nOrbit is a command line tool that plans satellite passes.\nIt reads a tle file and prints a schedule.\nLicense: Apache-2.0\n"

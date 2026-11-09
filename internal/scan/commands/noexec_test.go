@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/attest"
-	"github.com/saphan-ai/discover/internal/model"
-	"github.com/saphan-ai/discover/internal/scan"
+	"github.com/saphan-ai/discover-studio/internal/attest"
+	"github.com/saphan-ai/discover-studio/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/scan"
 )
 
 var repos = []string{"cmd-polyglot", "cmd-ci", "cmd-container", "go-cli", "node-web"}

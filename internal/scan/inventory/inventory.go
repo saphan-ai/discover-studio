@@ -13,10 +13,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/saphan-ai/discover/internal/attest"
-	"github.com/saphan-ai/discover/internal/manifest"
-	"github.com/saphan-ai/discover/internal/model"
-	"github.com/saphan-ai/discover/internal/safepath"
+	"github.com/saphan-ai/discover-studio/internal/attest"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/safepath"
 )
 
 // DefaultMaxBytes is the size cap when Options.MaxBytes says nothing: a file over it is never read.

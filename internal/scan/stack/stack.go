@@ -15,9 +15,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/saphan-ai/discover/internal/manifest"
-	"github.com/saphan-ai/discover/internal/model"
-	"github.com/saphan-ai/discover/internal/scan/inventory"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/scan/inventory"
 )
 
 // Reader returns the bytes of one file of the repository. It reports a file over the size cap as manifest.ErrTooLarge.

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/scan/todo"
+	"github.com/saphan-ai/discover-studio/internal/scan/todo"
 )
 
 func TestScanFindsEachMarkerWithItsLine(t *testing.T) {

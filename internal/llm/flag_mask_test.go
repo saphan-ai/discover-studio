@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/fixture"
-	"github.com/saphan-ai/discover/internal/llm"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/llm"
 )
 
 func flagValue(name string, parts ...string) fixture.Value {

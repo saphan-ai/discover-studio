@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
 )
 
 // dialCounter is a transport that counts every call and answers with a fixed completion.

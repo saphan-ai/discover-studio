@@ -12,10 +12,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/manifest"
-	"github.com/saphan-ai/discover/internal/model"
-	"github.com/saphan-ai/discover/internal/scan/inventory"
-	"github.com/saphan-ai/discover/internal/scan/stack"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/scan/inventory"
+	"github.com/saphan-ai/discover-studio/internal/scan/stack"
 )
 
 const fixtures = "../../../testdata"

@@ -14,15 +14,15 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/saphan-ai/discover/internal/attest"
-	"github.com/saphan-ai/discover/internal/manifest"
-	"github.com/saphan-ai/discover/internal/model"
-	"github.com/saphan-ai/discover/internal/scan/commands"
-	"github.com/saphan-ai/discover/internal/scan/inventory"
-	"github.com/saphan-ai/discover/internal/scan/secrets"
-	"github.com/saphan-ai/discover/internal/scan/stack"
-	"github.com/saphan-ai/discover/internal/scan/structure"
-	"github.com/saphan-ai/discover/internal/scan/todo"
+	"github.com/saphan-ai/discover-studio/internal/attest"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/scan/commands"
+	"github.com/saphan-ai/discover-studio/internal/scan/inventory"
+	"github.com/saphan-ai/discover-studio/internal/scan/secrets"
+	"github.com/saphan-ai/discover-studio/internal/scan/stack"
+	"github.com/saphan-ai/discover-studio/internal/scan/structure"
+	"github.com/saphan-ai/discover-studio/internal/scan/todo"
 )
 
 // Options tune one run.

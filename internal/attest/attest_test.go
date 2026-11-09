@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
 )
 
 // recipe extracts the fenced block tagged "sh <name>" from docs/DIGEST.md.

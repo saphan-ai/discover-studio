@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 func (s *scanner) ci(system, file string) {

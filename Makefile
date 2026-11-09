@@ -1,5 +1,5 @@
 # GNU make; recipes are POSIX sh.
-MODULE  := github.com/saphan-ai/discover
+MODULE  := github.com/saphan-ai/discover-studio
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 COMMIT  := $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
 LDFLAGS := -s -w -X $(MODULE)/internal/cli.version=$(VERSION) -X $(MODULE)/internal/cli.commit=$(COMMIT)

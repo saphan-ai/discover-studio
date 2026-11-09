@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/model"
-	"github.com/saphan-ai/discover/internal/scan/structure"
+	"github.com/saphan-ai/discover-studio/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/scan/structure"
 )
 
 var goCLI = []string{

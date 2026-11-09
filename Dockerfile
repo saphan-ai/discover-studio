@@ -1,4 +1,4 @@
-# Discover's image: the static discover binary and git, on Alpine, run as a user that is not root.
+# Discover Studio's image: the static discover binary and git, on Alpine, run as a user that is not root.
 #
 # The defaults below are the values in versions.env; make passes those settings and they win. Both are pinned by
 # version and digest, and scripts/image-pins.sh refuses the build when either is not.
@@ -19,7 +19,7 @@ RUN go mod download
 COPY cmd ./cmd
 COPY internal ./internal
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath \
-      -ldflags "-s -w -X github.com/saphan-ai/discover/internal/cli.version=${VERSION} -X github.com/saphan-ai/discover/internal/cli.commit=${COMMIT}" \
+      -ldflags "-s -w -X github.com/saphan-ai/discover-studio/internal/cli.version=${VERSION} -X github.com/saphan-ai/discover-studio/internal/cli.commit=${COMMIT}" \
       -o /out/discover ./cmd/discover
 
 FROM ${RUNTIME_IMAGE}
@@ -32,7 +32,7 @@ LABEL org.opencontainers.image.created="${CREATED}" \
       org.opencontainers.image.title="discover" \
       org.opencontainers.image.description="Reads a repository without changing it and proves it changed nothing." \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.source="https://github.com/saphan-ai/discover"
+      org.opencontainers.image.source="https://github.com/saphan-ai/discover-studio"
 RUN apk add --no-cache git \
  && adduser -D -u 65532 -h /work discover
 COPY --from=build /out/discover /usr/local/bin/discover

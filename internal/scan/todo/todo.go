@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"regexp"
 
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 // Max is the number of todo findings one repository lists.

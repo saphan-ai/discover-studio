@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 // verdicts runs the four validators over one document: the writer schema, model.Validate, the reader schema and

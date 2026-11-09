@@ -4,7 +4,7 @@ package main
 import (
 	"os"
 
-	"github.com/saphan-ai/discover/internal/cli"
+	"github.com/saphan-ai/discover-studio/internal/cli"
 )
 
 func main() {
