@@ -221,6 +221,13 @@ type Result struct {
 
 // Run scans root, which is an existing directory, in the given mode.
 func Run(root string, mode attest.Mode, opts Options) (Result, error) {
+	return RunInto(root, mode, opts, nil)
+}
+
+// RunInto is Run, recording every file a scanner reads into m. m must have been made for root (manifest.New of root's
+// real path), so a caller that reads more files after the scanners keeps one manifest for all of them. A nil m is a
+// fresh manifest, which is what Run does.
+func RunInto(root string, mode attest.Mode, opts Options, m *manifest.Manifest) (Result, error) {
 	abs, err := filepath.Abs(root)
 	if err != nil {
 		return Result{}, err
@@ -229,7 +236,10 @@ func Run(root string, mode attest.Mode, opts Options) (Result, error) {
 	if err != nil {
 		return Result{}, fmt.Errorf("%s: %w", filepath.Base(abs), cause(err))
 	}
-	s := &State{Root: real, Mode: mode, Opts: opts, Manifest: manifest.New(real), Repo: &model.Repo{Name: filepath.Base(abs)}}
+	if m == nil {
+		m = manifest.New(real)
+	}
+	s := &State{Root: real, Mode: mode, Opts: opts, Manifest: m, Repo: &model.Repo{Name: filepath.Base(abs)}}
 	for _, sc := range Scanners {
 		if err := sc.Run(s); err != nil {
 			return Result{}, fmt.Errorf("%s scanner: %s: %w", sc.Name, filepath.Base(abs), cause(err))
