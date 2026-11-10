@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 // section is one level-two heading of the report and the function that writes what stands under it.
@@ -49,13 +49,13 @@ func Render(r model.Report, repo int) ([]byte, error) {
 	rp := r.Repos[repo]
 	var b bytes.Buffer
 	b.WriteString("---\n")
-	fmt.Fprintf(&b, "title: %s\n", yamlString("Discover report: "+rp.Name))
+	fmt.Fprintf(&b, "title: %s\n", yamlString("Discover Studio report: "+rp.Name))
 	b.WriteString("type: briefing\n")
 	fmt.Fprintf(&b, "related order: %s\n", relatedOrder)
 	fmt.Fprintf(&b, "version: %s\n", yamlString(r.Tool.Version))
 	fmt.Fprintf(&b, "last_reviewed: %s\n", yamlString(r.Scan.Finished))
 	b.WriteString("---\n\n")
-	fmt.Fprintf(&b, "# Discover report: %s\n", text(rp.Name))
+	fmt.Fprintf(&b, "# Discover Studio report: %s\n", text(rp.Name))
 	for _, s := range sections {
 		fmt.Fprintf(&b, "\n## %s\n\n", s.heading)
 		s.render(&b, r, rp)

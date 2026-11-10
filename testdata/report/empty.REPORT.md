@@ -1,12 +1,12 @@
 ---
-title: "Discover report: empty"
+title: "Discover Studio report: empty"
 type: briefing
 related order: none
 version: "0.1.0"
 last_reviewed: "2026-10-28T10:00:01Z"
 ---
 
-# Discover report: empty
+# Discover Studio report: empty
 
 ## Repo metadata (attestation echo)
 

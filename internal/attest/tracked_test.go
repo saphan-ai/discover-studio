@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/attest"
-	"github.com/saphan-ai/discover/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/attest"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
 )
 
 func TestTrackedFilesLeavesOutUntrackedFiles(t *testing.T) {

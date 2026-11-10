@@ -1,12 +1,12 @@
 ---
-title: "Discover report: shop"
+title: "Discover Studio report: shop"
 type: briefing
 related order: none
 version: "0.4.0"
 last_reviewed: "2026-10-30T09:00:04Z"
 ---
 
-# Discover report: shop
+# Discover Studio report: shop
 
 ## Repo metadata (attestation echo)
 

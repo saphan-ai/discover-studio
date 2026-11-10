@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/fixture"
-	"github.com/saphan-ai/discover/internal/model"
-	"github.com/saphan-ai/discover/internal/scan/secrets"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/scan/secrets"
 )
 
 // want is one expected finding.

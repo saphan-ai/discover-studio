@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 // The section numbers of the contract, as the model's Absent entries name them.

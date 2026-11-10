@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/saphan-ai/discover/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
 )
 
 // The encoding: a name that holds a backslash, a `>` or ` -> `, a link whose target holds them, and an executable

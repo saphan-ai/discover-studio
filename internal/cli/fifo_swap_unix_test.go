@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/saphan-ai/discover/internal/safepath"
+	"github.com/saphan-ai/discover-studio/internal/safepath"
 )
 
 // A regular file is swapped for a FIFO between the check and the open. An open of a FIFO with no writer blocks for

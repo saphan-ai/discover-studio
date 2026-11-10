@@ -27,7 +27,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/saphan-ai/discover/internal/safepath"
+	"github.com/saphan-ai/discover-studio/internal/safepath"
 )
 
 // Mode is how a target was read.

@@ -1,12 +1,12 @@
 ---
-title: "Discover report: hostile"
+title: "Discover Studio report: hostile"
 type: briefing
 related order: none
 version: "0.4.0"
 last_reviewed: "2026-10-30T09:10:01Z"
 ---
 
-# Discover report: hostile
+# Discover Studio report: hostile
 
 ## Repo metadata (attestation echo)
 

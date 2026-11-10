@@ -1,4 +1,4 @@
-module github.com/saphan-ai/discover
+module github.com/saphan-ai/discover-studio
 
 go 1.26.0
 

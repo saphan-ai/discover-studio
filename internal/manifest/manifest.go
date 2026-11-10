@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/saphan-ai/discover/internal/safepath"
+	"github.com/saphan-ai/discover-studio/internal/safepath"
 )
 
 // Schema names the serialised form.

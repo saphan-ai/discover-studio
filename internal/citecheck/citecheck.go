@@ -9,9 +9,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/saphan-ai/discover/internal/llm"
-	"github.com/saphan-ai/discover/internal/manifest"
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/llm"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 // maxFileBytes caps the size of a cited file the filter will read.

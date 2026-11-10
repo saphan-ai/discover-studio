@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 // findingGroups is the order of section 7's parts, and the finding kind each one lists.

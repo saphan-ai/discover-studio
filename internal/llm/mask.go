@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"sort"
 
-	"github.com/saphan-ai/discover/internal/scan/secrets"
+	"github.com/saphan-ai/discover-studio/internal/scan/secrets"
 )
 
 // maskPlan says which lines of a file must not be sent, by line number from 1, and the secret types that put them

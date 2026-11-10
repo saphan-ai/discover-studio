@@ -11,8 +11,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/fixture"
-	"github.com/saphan-ai/discover/internal/llm"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/llm"
 )
 
 // recorder is a local stand-in for an OpenAI-compatible endpoint. It keeps every request it saw.

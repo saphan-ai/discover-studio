@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 // The closed set of secret types.

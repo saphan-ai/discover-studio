@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 // The refusals of a reply, by name.

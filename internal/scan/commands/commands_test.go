@@ -14,10 +14,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/fixture"
-	"github.com/saphan-ai/discover/internal/manifest"
-	"github.com/saphan-ai/discover/internal/model"
-	"github.com/saphan-ai/discover/internal/scan/commands"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/scan/commands"
 )
 
 // update rewrites the golden files: go test ./internal/scan/commands -update. Read the diff before you commit it.

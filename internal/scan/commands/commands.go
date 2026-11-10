@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/saphan-ai/discover/internal/manifest"
-	"github.com/saphan-ai/discover/internal/model"
-	"github.com/saphan-ai/discover/internal/scan/secrets"
+	"github.com/saphan-ai/discover-studio/internal/manifest"
+	"github.com/saphan-ai/discover-studio/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/scan/secrets"
 )
 
 // The reasons a file is listed in Result.Skipped. The first two are the words the inventory uses.

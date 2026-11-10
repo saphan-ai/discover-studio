@@ -3,7 +3,7 @@ package commands
 import (
 	"strings"
 
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 func (s *scanner) container(kind, image, file string, line int) {

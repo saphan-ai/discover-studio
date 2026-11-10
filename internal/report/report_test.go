@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/model"
+	"github.com/saphan-ai/discover-studio/internal/model"
 )
 
 var update = flag.Bool("update", false, "rewrite the golden REPORT.md files under testdata/report")

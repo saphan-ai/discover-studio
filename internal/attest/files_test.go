@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/saphan-ai/discover/internal/fixture"
+	"github.com/saphan-ai/discover-studio/internal/fixture"
 )
 
 func write(t *testing.T, root, rel, body string) {

@@ -1,13 +1,13 @@
-# Discover
+# Discover Studio
 
-<p align="center"><img src="docs/images/banner.png" alt="Discover: know what is in a codebase before anyone changes it" width="100%"></p>
+<p align="center"><img src="docs/images/banner.png" alt="Discover Studio: know what is in a codebase before anyone changes it" width="100%"></p>
 
 
 **Know what is in a codebase before you, or your AI agents, start changing it, with a source for every claim.**
 This is for anyone who has to work on code they did not write. You do not need to know anything about Saphan to read
 this page.
 
-Discover reads a repository without changing it and without running any of its code. It runs on your machine, needs no
+Discover Studio reads a repository without changing it and without running any of its code. It runs on your machine, needs no
 account and no network, and proves at the end that it changed nothing.
 
 ## The problem
@@ -29,14 +29,14 @@ the same: what is actually in here?
 
 You need [Docker](https://docs.docker.com/get-docker/) and git, and nothing else.
 
-Three words, so the output makes sense. The **target** is the folder Discover reads. The **fingerprint** is one long
+Three words, so the output makes sense. The **target** is the folder Discover Studio reads. The **fingerprint** is one long
 number worked out from every file in the target: change one byte anywhere and it changes. The **read-only proof** is
 the fingerprint taken before reading and again at the end: `EQUAL` means nothing was changed.
 
-Let Discover read its own code. In a macOS or Linux shell:
+Let Discover Studio read its own code. In a macOS or Linux shell:
 
 ```
-git clone https://github.com/saphan-ai/discover
+git clone https://github.com/saphan-ai/discover-studio discover
 mkdir -p discover-out
 docker run --rm --network none --user "$(id -u):$(id -g)" \
   -v "$PWD/discover:/discover:ro" -v "$PWD/discover-out:/out" \
@@ -47,11 +47,11 @@ docker run --rm --network none --user "$(id -u):$(id -g)" \
 it tried. `--user` makes the results yours. To read your own repository, put its folder where `$PWD/discover` is and
 its name where `/discover` is, both times.
 
-Or build it from source, with [Go](https://go.dev/) 1.26 or newer and git 2.45 or newer (Discover refuses an older git
+Or build it from source, with [Go](https://go.dev/) 1.26 or newer and git 2.45 or newer (Discover Studio refuses an older git
 by name):
 
 ```
-git clone https://github.com/saphan-ai/discover
+git clone https://github.com/saphan-ai/discover-studio discover
 cd discover
 make build
 cd ..
@@ -75,7 +75,7 @@ see below). With the binary built from source, try `discover/bin/discover scan -
 read two folders at once. The exact
 rules for the fingerprint, with commands to work it out yourself: [docs/DIGEST.md](docs/DIGEST.md).
 
-## What Discover does today
+## What Discover Studio does today
 
 - **It reads, and that is all.** It never writes into the target and never runs its build, test or run commands. A
   results folder inside the target is refused before anything is read.
@@ -87,25 +87,25 @@ rules for the fingerprint, with commands to work it out yourself: [docs/DIGEST.m
 
 ## What it will be
 
-Discover will describe the code, not only prove it left it alone:
+Discover Studio will describe the code, not only prove it left it alone:
 
 - **What is in it:** files and folders, languages, versions, where the program starts, how it is built, tested and
   run, and its build and container files. Every statement names the file and line it came from. A version is given as
-  the file states it. If the file states none, Discover says "not pinned" and never guesses.
+  the file states it. If the file states none, Discover Studio says "not pinned" and never guesses.
 - **Secrets, by place and type, never by value.** "Line 12 of `config.yaml` holds a password." The report format has no
   field that could hold the password itself.
 - **Hidden instructions, as findings.** Text in the code that tries to instruct an AI assistant is reported and
   quoted, never followed.
 - **A model, only if you ask.** Without one, everything is worked out by fixed rules and costs nothing. With one (any
-  service that speaks the OpenAI interface, including a model on your own machine) Discover can add a description in
+  service that speaks the OpenAI interface, including a model on your own machine) Discover Studio can add a description in
   plain words. A claim the model cannot back with a source is dropped, and the report counts the drops.
 - **A check you can run later.** `discover verify` will tell you whether the files a report cites have changed since.
 - **A head start in Saphan Studio.** The report will carry a short profile of your repositories (languages, how to
   build and test them, the convention files found). Saphan Studio reads it when you set it up, so its AI agents start
-  from facts instead of a paragraph typed into a chat. If you use Saphan Studio, Discover will also be able to run its
+  from facts instead of a paragraph typed into a chat. If you use Saphan Studio, Discover Studio will also be able to run its
   optional model step through Studio, on the subscription you already have, and check everything that comes back.
 
-Discover will not grade code. It will say what it read, what it found and where.
+Discover Studio will not grade code. It will say what it read, what it found and where.
 
 ## How it will be built
 
@@ -114,7 +114,7 @@ after it. This page will say when each piece lands. The Saphan Studio side is be
 
 ## What is in this repository
 
-The open part of Discover. It runs on its own and needs nothing from Saphan Studio.
+The open part of Discover Studio. It runs on its own and needs nothing from Saphan Studio.
 
 | path | what it is |
 |---|---|
@@ -132,7 +132,7 @@ The open part of Discover. It runs on its own and needs nothing from Saphan Stud
 
 ## Honest limits
 
-- **Today Discover proves; it does not yet describe.** `discover scan` does not yet write a report, so
+- **Today Discover Studio proves; it does not yet describe.** `discover scan` does not yet write a report, so
   `READ_MANIFEST.json` is empty. `discover verify` appears in `discover help` but is not built yet.
 - The proof compares two moments. A file changed and changed back between them still gives `EQUAL`. Empty folders,
   file times, most permissions, and in a git repository the ignored files and the inside of `.git`, are not covered.
@@ -160,7 +160,12 @@ refuse one that is not.
 
 Read [AGENTS.md](AGENTS.md) before you contribute.
 
-**The open parts of Saphan Studio:** [Discover](https://github.com/saphan-ai/discover) · [Mocks Studio](https://github.com/saphan-ai/mocks-studio) · [Tests Studio](https://github.com/saphan-ai/tests-studio) · [Skills Studio](https://github.com/saphan-ai/skills-studio). Each one works on its own. Together they are the instruments AI agents work with in [Saphan Studio](https://saphan.ai/).
+**Release note: the name and the Go module path moved.** The product is now Discover Studio, and the Go module path is
+`github.com/saphan-ai/discover-studio` (it was `github.com/saphan-ai/discover`). The old GitHub address redirects to the
+new one, but Go needs the new path in `go.mod`. The `discover` command, the `saphan/discover` image and the report format's
+`$id` addresses keep their names.
+
+**The open parts of Saphan Studio:** [Discover Studio](https://github.com/saphan-ai/discover-studio) · [Mock Studio](https://github.com/saphan-ai/mock-studio) · [Test Studio](https://github.com/saphan-ai/test-studio) · [Skill Studio](https://github.com/saphan-ai/skill-studio). Each one works on its own. Together they are the instruments AI agents work with in [Saphan Studio](https://saphan.ai/).
 
 ## Licence
 
