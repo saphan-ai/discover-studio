@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/saphan-ai/discover-studio/internal/attest"
 	"github.com/saphan-ai/discover-studio/internal/llm"
@@ -34,6 +35,9 @@ const (
 	attestationFile = "ATTESTATION.json"
 	attestSchema    = "discover-attestation/v1"
 )
+
+// outputFiles is every file scan writes into --out, in the order it writes them.
+var outputFiles = []string{manifestFile, attestationFile, reportFile, jsonFile}
 
 // betweenPasses runs after the first digest and before the second. Tests use it to change the target in between.
 var betweenPasses = func(root string) {}
@@ -64,7 +68,7 @@ type target struct {
 func scan(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("scan", flag.ContinueOnError)
 	fs.SetOutput(stderr)
-	out := fs.String("out", "./discover-out", "directory for READ_MANIFEST.json and ATTESTATION.json")
+	out := fs.String("out", "./discover-out", "directory for REPORT.md, discover.json, READ_MANIFEST.json and ATTESTATION.json")
 	recordRoot := fs.Bool("record-root", false, "record the absolute root path instead of its base name")
 	gitTimeout := fs.Duration("git-timeout", attest.DefaultGitTimeout, "deadline of each git call")
 	mf := modelFlags{}
@@ -221,12 +225,18 @@ type outputDir struct {
 }
 
 func scanOne(t target, out outputDir, opts attest.Options, mf modelFlags, stdout io.Writer) (int, error) {
+	started := time.Now()
 	before, err := attest.Attest(t.real, opts)
 	if err != nil {
 		return ExitUsage, err
 	}
-	// The manifest lists what analysers read and cite; the attestation's own reads are covered by the digest.
+	// The manifest lists what the scanners and analysers read and cite; the attestation's own reads are covered by
+	// the digest.
 	m := manifest.New(t.real)
+	res, err := scanners(t.real, before.Mode, opts, m)
+	if err != nil {
+		return ExitUsage, err
+	}
 	analysers(t.real, m)
 	// The model step runs only when asked for. Its result waits for the report writer; for now the counts are
 	// printed after the proof.
@@ -242,6 +252,10 @@ func scanOne(t target, out outputDir, opts attest.Options, mf modelFlags, stdout
 		return ExitUsage, err
 	}
 	diffs := attest.Compare(before, after)
+	md, js, err := renderReport(buildReport(before, after, diffs, res, m, started, time.Now()))
+	if err != nil {
+		return ExitUsage, fmt.Errorf("the report could not be built: %w", err)
+	}
 
 	scope := scopePlain
 	if before.Mode == attest.ModeGit {
@@ -270,7 +284,7 @@ func scanOne(t target, out outputDir, opts attest.Options, mf modelFlags, stdout
 	if err != nil {
 		return ExitUsage, err
 	}
-	if err := writeOutputs(root, map[string][]byte{manifestFile: mj, attestationFile: append(aj, '\n')}); err != nil {
+	if err := writeOutputs(root, map[string][]byte{manifestFile: mj, attestationFile: append(aj, '\n'), reportFile: md, jsonFile: js}); err != nil {
 		return ExitUsage, err
 	}
 
@@ -291,6 +305,8 @@ func scanOne(t target, out outputDir, opts attest.Options, mf modelFlags, stdout
 	if u := before.Untracked; u != nil && u.Files+u.Links+u.Submodules+u.Unreadable > 0 {
 		fmt.Fprintf(stdout, "untracked: %d files  digest: %s\n", u.Files, u.Digest)
 	}
+	fmt.Fprintln(stdout, summaryLine(res.Repo, res.TodoTotal))
+	fmt.Fprintf(stdout, "wrote: %s  %s  %s  %s\n", reportFile, jsonFile, attestationFile, manifestFile)
 	if narr != nil {
 		fmt.Fprintf(stdout, "model: %s  kept: %d  dropped: %d  skipped: %d\n", mf.name,
 			len(narr.result.Claims)+len(narr.result.OpenQuestions)+len(narr.result.Recommendations), narr.result.Dropped, narr.skipped)
@@ -362,7 +378,7 @@ func unplainOutput(dir string) string {
 	if !fi.IsDir() {
 		return "directory is a symbolic link or not a directory"
 	}
-	for _, name := range []string{manifestFile, attestationFile} {
+	for _, name := range outputFiles {
 		fi, err := os.Lstat(filepath.Join(dir, name))
 		if err != nil {
 			continue
@@ -506,7 +522,7 @@ func dirInsideTarget(rs fs.FileInfo, dir string, targets []target) (target, bool
 // writeOutputs writes each file under a fresh name in root and renames it into place. It never opens an existing
 // output name for writing, so a hard link, a link or a FIFO standing at that name is replaced, never written into.
 func writeOutputs(root *os.Root, files map[string][]byte) error {
-	for _, name := range []string{manifestFile, attestationFile} {
+	for _, name := range outputFiles {
 		if err := writeFresh(root, name, files[name]); err != nil {
 			return outputError(name, err)
 		}
