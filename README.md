@@ -65,13 +65,17 @@ target: discover (git)
 branch: main  head: <commit>
 clean
 files: <number>  bytes: <number>  digest: <fingerprint>
+found: <n> stack rows  <n> commands  <n> entry points  <n> CI files  <n> findings  <n> TODO markers
+wrote: REPORT.md  discover.json  ATTESTATION.json  READ_MANIFEST.json
 read-only proof: EQUAL <fingerprint> (covers tracked and untracked files, modes, HEAD; not ignored paths or .git internals)
 ```
 
 `(git)` means the target is a git repository; a plain folder shows `(dir)`. `clean` means it had no uncommitted
-changes. The results are in a new folder, `discover-out`, beside the target, never inside it: `ATTESTATION.json` says
-what was read and holds the proof, and `READ_MANIFEST.json` will list every file a report cites (it is empty today,
-see below). With the binary built from source, try `discover/bin/discover scan --out results path/one path/two` to
+changes. The results are in a new folder, `discover-out`, beside the target, never inside it: `REPORT.md` is the
+report a person reads (ten numbered sections: what is there, the stack with every version cited as `file:key`, the
+commands it found and never ran, CI, containers, secrets named by type and location with the value never quoted, TODO
+markers), `discover.json` is the same report for other tools ([docs/SCHEMA.md](docs/SCHEMA.md)), `ATTESTATION.json`
+says what was read and holds the proof, and `READ_MANIFEST.json` lists every file the report read, with its hash. With the binary built from source, try `discover/bin/discover scan --out results path/one path/two` to
 read two folders at once. The exact
 rules for the fingerprint, with commands to work it out yourself: [docs/DIGEST.md](docs/DIGEST.md).
 
@@ -83,17 +87,17 @@ rules for the fingerprint, with commands to work it out yourself: [docs/DIGEST.m
   `NOT-EQUAL`, `2` means a mistake in the command or a refusal, explained in one sentence.
 - **It keeps your paths private.** A result names the target by its folder name, not by its full path on your disk,
   unless you ask for the full path with `--record-root`.
-- **Its report format is published,** so other tools can read and write it: [docs/SCHEMA.md](docs/SCHEMA.md).
-
-## What it will be
-
-Discover Studio will describe the code, not only prove it left it alone:
-
+- **It describes what it read,** in `REPORT.md` and `discover.json`. What follows is written today, by rules, with no
+  model:
 - **What is in it:** files and folders, languages, versions, where the program starts, how it is built, tested and
   run, and its build and container files. Every statement names the file and line it came from. A version is given as
   the file states it. If the file states none, Discover Studio says "not pinned" and never guesses.
 - **Secrets, by place and type, never by value.** "Line 12 of `config.yaml` holds a password." The report format has no
   field that could hold the password itself.
+- **Its report format is published,** so other tools can read and write it: [docs/SCHEMA.md](docs/SCHEMA.md).
+
+## What it will be
+
 - **Hidden instructions, as findings.** Text in the code that tries to instruct an AI assistant is reported and
   quoted, never followed.
 - **A model, only if you ask.** Without one, everything is worked out by fixed rules and costs nothing. With one (any
@@ -132,12 +136,13 @@ The open part of Discover Studio. It runs on its own and needs nothing from Saph
 
 ## Honest limits
 
-- **Today Discover Studio proves; it does not yet describe.** `discover scan` does not yet write a report, so
-  `READ_MANIFEST.json` is empty. `discover verify` appears in `discover help` but is not built yet.
+- **The report is written by rules, not yet by a model.** `--model` asks a model for a narrative and prints how many of
+  its claims were kept and dropped, but the narrative is not yet written into the report. `discover verify` appears in
+  `discover help` but is not built yet.
 - The proof compares two moments. A file changed and changed back between them still gives `EQUAL`. Empty folders,
   file times, most permissions, and in a git repository the ignored files and the inside of `.git`, are not covered.
   [docs/DIGEST.md](docs/DIGEST.md) lists all of it.
-- When secret search arrives it will look for known shapes, so it will miss a secret that looks like ordinary text.
+- Secret search looks for known shapes, so it misses a secret that looks like ordinary text.
 - A source shows where a statement comes from. It does not show that the statement is right.
 - The ready-made download is the `saphan/discover` image, for Linux on Intel/AMD and ARM; there are no ready-made
   programs for macOS or Windows yet, so build those from source. The automatic tests run on Linux. The macOS and
